@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Магнолія - Cinematic Magic</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Cinzel', serif;
+            background: #050505;
+            touch-action: none;
+        }
+
+        .stage-area {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Background with Parallax Hook */
+        .bg-layer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 110vh;
+            /* Larger for movement */
+            height: 110vw;
+            object-fit: cover;
+            transform: translate(-50%, -50%) rotate(90deg) scale(1);
+            z-index: 0;
+            filter: brightness(0.8);
+            filter: brightness(0.8);
+            /* transition removed to prevent conflict with JS loop */
+        }
+
+        /* FILM GRAIN / NOISE OVERLAY - The "Luxe" Texture */
+        .noise-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.08;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
+        }
+
+        /* Magic Orbs - Base Style (Positioned by JS) */
+        .magic-orb {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            /* Organic glow gradient */
+            background: radial-gradient(circle, rgba(255, 255, 240, 0.9) 0%, rgba(255, 220, 150, 0.4) 30%, rgba(0, 0, 0, 0) 70%);
+            box-shadow: 0 0 25px rgba(255, 230, 200, 0.5);
+            cursor: pointer;
+            z-index: 20;
+            opacity: 0;
+            /* Fade in */
+            mix-blend-mode: screen;
+            -webkit-tap-highlight-color: transparent;
+            will-change: transform;
+        }
+
+        /* Large hit area */
+        .magic-orb::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+        }
+
+        .magic-orb.collected {
+            transform: scale(3) !important;
+            opacity: 0 !important;
+            transition: all 0.4s ease-out;
+            pointer-events: none;
+        }
+
+        /* Promo UI */
+        .promo-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 30;
+            color: #fff;
+            width: 90%;
+            max-width: 500px;
+            pointer-events: none;
+        }
+
+        .hidden-card {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        }
+
+        .promo-content.revealed .hidden-card {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
+        .task-text {
+            position: absolute;
+            bottom: 15%;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            pointer-events: none;
+            transition: opacity 1s;
+        }
+
+        h2 {
+            font-size: 3rem;
+            margin: 0;
+            letter-spacing: 5px;
+            font-weight: 400;
+        }
+
+        .offer-text {
+            display: block;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            color: #fceea7;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px 0;
+            font-family: 'Cinzel';
+            line-height: 1.5;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button {
+            padding: 15px 40px;
+            border: 1px solid #fff;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-family: 'Cinzel';
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Lead Gen Form Styles */
+        .lead-form input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 12px 20px;
+            color: #fff;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            width: 70%;
+            margin-bottom: 15px;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .lead-form input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .lead-form input:focus {
+            border-color: #fceea7;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .hidden-offer {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .hidden-offer.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            h2 {
+                font-size: 2.5rem;
+            }
+
+            .hidden-card {
+                padding: 30px 20px;
+            }
+        }
+
+        #dust-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="stage-area" id="stage">
+        <!-- Rotated Bg -->
+        <img src="magnolia_bg.jpg" class="bg-layer" id="bgLayer" alt="Background">
+
+        <!-- Film Noise -->
+        <div class="noise-overlay"></div>
+
+        <!-- Particles -->
+        <canvas id="dust-canvas"></canvas>
+
+        <div class="task-text" id="taskText">Collect 3 lights...</div>
+
+        <!-- Orbs generated by JS -->
+        <div id="orbs-container"></div>
+
+        <div class="promo-content" id="promo">
+            <div class="hidden-card" id="promoCard">
+                <h2>FLOWER SALE</h2>
+
+                <!-- Step 1: Form -->
+                <form class="lead-form" id="emailForm" onsubmit="handleForm(event)">
+                    <p style="margin-bottom: 15px; color: #ddd; font-family: 'Cormorant Garamond'; font-size: 1.2rem;">
+                        Введіть дані, щоб отримати знижку
+                    </p>
+                    <input type="text" name="name" placeholder="Ваше Ім'я" required
+                        style="display:block; margin: 0 auto 10px auto;">
+                    <input type="text" name="contact" placeholder="Email або Телефон" required
+                        style="display:block; margin: 0 auto 15px auto;">
+
+                    <button type="submit">Отримати код</button>
+                </form>
+
+                <!-- Step 2: The Offer (Hidden initially) -->
+                <div class="hidden-offer" id="offerResult">
+                    <div class="offer-text">
+                        Ваш код: <span style="font-size: 1.4rem; color: #fff;">SPRING20</span><br>
+                        <span style="font-size: 1rem; text-transform:none;">-20% на замовлення квітів до кінця
+                            місяця</span>
+                    </div>
+                    <button onclick="window.location.href='https://t.me/quarter_flowers_cv?text=SPRING20'">Відправити
+                        код в Telegram</button>
+                    <br>
+                    <button onclick="location.href='index.html'"
+                        style="margin-top:15px; padding: 10px 20px; font-size: 0.8rem; opacity: 0.6; border: none; background: transparent; text-decoration: underline;">В
+                        меню</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        const ORB_COUNT = 3;
+        const container = document.getElementById('orbs-container');
+        let collected = 0;
+
+        // --- BACKGROUND PARALLAX ---
+        const bg = document.getElementById('bgLayer');
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2; // -1 to 1
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        // Loop for smoothing parallax
+        function updateParallax() {
+            // Smooth lerp
+            targetX += (mouseX - targetX) * 0.05;
+            targetY += (mouseY - targetY) * 0.05;
+
+            // Apply transform. Remember base rotation is 90deg.
+            // movement should be subtle (20px max)
+            const moveX = targetX * 30;
+            const moveY = targetY * 30;
+
+            // Maintain the 90deg rotation and centering
+            bg.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px)) rotate(90deg) scale(1.05)`;
+
+            requestAnimationFrame(updateParallax);
+        }
+        updateParallax();
+
+
+        // --- ORGANIC PHYSICS ORBS ---
+        class Orb {
+            constructor() {
+                this.el = document.createElement('div');
+                this.el.className = 'magic-orb';
+                container.appendChild(this.el);
+
+                // Initialize random pos (avoid edges)
+                this.x = Math.random() * (window.innerWidth - 100) + 50;
+                this.y = Math.random() * (window.innerHeight - 100) + 50;
+
+                // Velocity
+                this.vx = (Math.random() - 0.5) * 1;
+                this.vy = (Math.random() - 0.5) * 1;
+
+                // "Home" position to orbit loosely
+                this.homeX = this.x;
+                this.homeY = this.y;
+
+                this.interacted = false;
+
+                // Fade in delay
+                setTimeout(() => { this.el.style.opacity = '1'; }, Math.random() * 1000);
+
+                // Interactions
+                this.el.addEventListener('click', (e) => this.collect(e));
+                this.el.addEventListener('touchstart', (e) => { e.preventDefault(); this.collect(e); });
+            }
+
+            update() {
+                if (this.interacted) return;
+
+                // 1. Organic Random Walk
+                this.vx += (Math.random() - 0.5) * 0.05;
+                this.vy += (Math.random() - 0.5) * 0.05;
+
+                // 2. Pull towards "Home" (prevents wandering off screen)
+                const dx = this.homeX - this.x;
+                const dy = this.homeY - this.y;
+                this.vx += dx * 0.0005;
+                this.vy += dy * 0.0005;
+
+                // 3. Mouse Avoidance / Attraction (Interactive)
+                // Let's make them visually "Curious" - Attract slightly
+                // Mapping mouse coordinate to actual pixels
+                const mx = (mouseX / 2 + 0.5) * window.innerWidth;
+                const my = (mouseY / 2 + 0.5) * window.innerHeight;
+                const dist = Math.hypot(mx - this.x, my - this.y);
+
+                if (dist < 200) {
+                    // Gentle Attraction
+                    this.vx += (mx - this.x) * 0.002;
+                    this.vy += (my - this.y) * 0.002;
+                }
+
+                // Dampening
+                this.vx *= 0.96;
+                this.vy *= 0.96;
+
+                // Apply
+                this.x += this.vx;
+                this.y += this.vy;
+
+                this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
+            }
+
+            collect(e) {
+                if (this.interacted) return;
+                this.interacted = true;
+                this.el.classList.add('collected');
+
+                // Burst UI
+                const rect = this.el.getBoundingClientRect();
+                createBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+                if (navigator.vibrate) navigator.vibrate(50);
+
+                collected++;
+                if (collected === ORB_COUNT) revealPromo();
+            }
+        }
+
+        const orbs = [];
+        for (let i = 0; i < ORB_COUNT; i++) orbs.push(new Orb());
+
+        function loopOrbs() {
+            orbs.forEach(o => o.update());
+            requestAnimationFrame(loopOrbs);
+        }
+        loopOrbs();
+
+        // --- SHARED UTILS --- 
+        function revealPromo() {
+            document.getElementById('taskText').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('promo').classList.add('revealed');
+            }, 500);
+        }
+
+        function createBurst(x, y) {
+            const burst = document.createElement('div');
+            burst.style.cssText = `
+                position: absolute; left: ${x}px; top: ${y}px;
+                width: 100px; height: 100px; background: radial-gradient(white, transparent 70%);
+                transform: translate(-50%, -50%) scale(0); z-index: 25; pointer-events: none;
+                transition: 0.5s ease-out;
+            `;
+            document.body.appendChild(burst);
+            requestAnimationFrame(() => {
+                burst.style.transform = 'translate(-50%, -50%) scale(2)';
+                burst.style.opacity = '0';
+            });
+            setTimeout(() => burst.remove(), 500);
+        }
+
+        // --- PARTICLES (Dust) ---
+        const canvas = document.getElementById('dust-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Dust {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.alpha = Math.random() * 0.4;
+            }
+            update() {
+                // Parallax shift based on mouse too!
+                this.x += (Math.random() - 0.5) * 0.2 + (targetX * -2); // Opposite to background
+                this.y += (Math.random() - 0.5) * 0.2 + (targetY * -2);
+
+                // Wrap around
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        for (let i = 0; i < 100; i++) particles.push(new Dust());
+
+        function loopDust() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(loopDust);
+        }
+        loopDust();
+
+        // --- FORM HANDLING ---
+        function handleForm(e) {
+            e.preventDefault(); // Stop reload
+            const form = document.getElementById('emailForm');
+            const result = document.getElementById('offerResult');
+            const btn = form.querySelector('button');
+            btn.innerHTML = "Відправка...";
+
+            // Google Form Data
+            const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfMqCoTyx61dxDnNlKg41ALTi1J6gRdn1R4FGUDplm0SHCtvQ/formResponse';
+            const ID_NAME = 'entry.166527665';     // Ім'я
+            const ID_CONTACT = 'entry.2146130319'; // Контакт
+
+            // Capture data
+            const nameVal = form.querySelector('input[name="name"]').value;
+            const contactVal = form.querySelector('input[name="contact"]').value;
+            // Append Source to name since form has no Source field
+            const finalName = `${nameVal} (Flower sale)`;
+
+            const formData = new FormData();
+            formData.append(ID_NAME, finalName);
+            formData.append(ID_CONTACT, contactVal);
+
+            // Send to Google
+            fetch(FORM_URL, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors'
+            })
+                .then(() => {
+                    // Success (transition UI)
+                    form.style.opacity = '0';
+                    setTimeout(() => {
+                        form.style.display = 'none';
+                        result.classList.add('visible');
+                    }, 300);
+                })
+                .catch(() => {
+                    // Even on error, show discount
+                    form.style.display = 'none';
+                    result.classList.add('visible');
+                });
+        }
+    </script>
+</body>
+
+</html>

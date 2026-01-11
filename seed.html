@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Зернятко</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .stage-area {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('soil_empty.png') no-repeat center center;
+            background-size: cover;
+        }
+
+        /* The Animated Plant - Using Mask Reveal for "growing" effect */
+        .plant {
+            width: 180px;
+            height: 250px;
+            background: url('plant_iso.png') no-repeat bottom center;
+            background-size: contain;
+            mix-blend-mode: screen;
+            position: absolute;
+            bottom: 25%;
+            left: 50%;
+            transform: translate(-50%, 20%);
+            z-index: 5;
+            filter: brightness(1.1) contrast(1.1);
+
+            /* The Magic: Mask Animation */
+            /* Start: Mask is positioned so only transparent part covers image */
+            -webkit-mask-image: linear-gradient(to top, black 50%, transparent 50%);
+            -webkit-mask-size: 100% 250%;
+            /* Double height mask */
+            -webkit-mask-position: 0 100%;
+            /* Show transparent part (hidden) */
+            mask-image: linear-gradient(to top, black 50%, transparent 50%);
+            mask-size: 100% 250%;
+            mask-position: 0 100%;
+
+            transition: mask-position 4s ease-out, -webkit-mask-position 4s ease-out;
+        }
+
+        .plant.grown {
+            -webkit-mask-position: 0 0;
+            /* Move mask up to reveal */
+            mask-position: 0 0;
+        }
+
+        /* The Seed */
+        .seed {
+            width: 40px;
+            /* Smaller */
+            height: 40px;
+            background: url('avocado_seed.png') no-repeat center center;
+            background-size: 150%;
+            /* Zoom in more to crop shadow */
+            mix-blend-mode: screen;
+            clip-path: circle(40% at center);
+            /* Tighter crop */
+
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 1.5s ease-in-out;
+            z-index: 10;
+            animation: float 4s infinite ease-in-out;
+            /* High contrast to bleach background artifacts */
+            filter: contrast(1.6) brightness(1.2);
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .seed.planted {
+            top: 75%;
+            transform: translate(-50%, 0) scale(0.2);
+            opacity: 0;
+        }
+
+        /* The Watering Can */
+        .water-can-container {
+            position: absolute;
+            top: 15%;
+            right: 10%;
+            /* More right */
+            width: 100px;
+            /* Reduced half */
+            height: 100px;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 1s, transform 0.8s ease;
+            pointer-events: none;
+        }
+
+        .water-can {
+            width: 100%;
+            height: 100%;
+            /* Reverting to white-bg image with multiply for better edge blending than screen */
+            background: url('watering_can.png') no-repeat center center / contain;
+            mix-blend-mode: screen;
+            transform-origin: 20% 50%;
+            /* Pivot near spout/body connection? NO, pivot center */
+            /* User says spout faces Left. Image faces Left. */
+            transition: transform 1s ease-in-out;
+            cursor: pointer;
+            filter: brightness(1.1) contrast(1.2);
+        }
+
+        .water-can-container.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .water-can.pouring {
+            /* Tilt forward (left) */
+            transform: rotate(-45deg) translate(-10px, 10px);
+        }
+
+        /* Multiple Rain Streams (Shower effect) */
+        .shower-head {
+            position: absolute;
+            top: 60%;
+            left: -20%;
+            /* Relative to can container */
+            width: 40px;
+            height: 100px;
+            pointer-events: none;
+            opacity: 0;
+            transform: rotate(45deg);
+            /* Counter-rotate to fall straight */
+        }
+
+        .stream {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            width: 1px;
+            height: 0;
+            top: 0;
+            border-radius: 2px;
+            transition: height 0.2s;
+        }
+
+        /* Multiple drops */
+        .stream:nth-child(1) {
+            left: 0px;
+            transition-delay: 0s;
+        }
+
+        .stream:nth-child(2) {
+            left: 5px;
+            transition-delay: 0.1s;
+        }
+
+        .stream:nth-child(3) {
+            left: 10px;
+            transition-delay: 0.05s;
+        }
+
+        .stream:nth-child(4) {
+            left: 15px;
+            transition-delay: 0.15s;
+        }
+
+        .shower-head.flowing {
+            opacity: 1;
+        }
+
+        .shower-head.flowing .stream {
+            height: 300px;
+            /* Reach ground */
+            animation: rainPulse 0.5s infinite alternate;
+        }
+
+        @keyframes rainPulse {
+            from {
+                opacity: 0.5;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Updated Promo Card */
+        .promo-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0;
+            /* Transparent bg */
+            background: rgba(255, 255, 255, 0.05);
+            /* Glassmorphism */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 40px 60px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            transition: all 1s ease 1s;
+            pointer-events: none;
+            z-index: 40;
+            border-radius: 4px;
+        }
+
+        .promo-card h2 {
+            font-family: 'Cinzel', serif;
+            color: #d4af37;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .promo-card p {
+            font-family: 'Cormorant Garamond', serif;
+            color: #f7f1e3;
+            font-size: 1.5rem;
+        }
+
+        .promo-card.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) translateY(0);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) translateY(-10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="stage-area">
+        <!-- The Plant  -->
+        <div class="plant" id="plant"></div>
+
+        <div class="seed" id="seed"></div>
+
+        <div class="water-can-container" id="canContainer">
+            <div class="water-can" id="waterCan"></div>
+            <!-- Shower Streams attached to Can -->
+            <div class="shower-head" id="showerHead">
+                <div class="stream"></div>
+                <div class="stream"></div>
+                <div class="stream"></div>
+                <div class="stream"></div>
+            </div>
+        </div>
+
+        <div class="instruction" id="instruction"
+            style="font-family: 'Cinzel', serif; opacity: 0.8; text-shadow: 0 2px 5px #000;">Посади зернятко...</div>
+
+        <div class="promo-card" id="promoCard">
+            <h2>Grow with Quarter</h2>
+            <p>-15% на перше замовлення</p>
+            <br>
+            <button onclick="location.href='index.html'"
+                style="background: transparent; border: 1px solid #d4af37; color: #d4af37; padding: 10px 30px; cursor: pointer; font-family: 'Cinzel', serif; font-size: 1rem; transition: all 0.3s;">Готово</button>
+        </div>
+    </div>
+
+    <script>
+        const seed = document.getElementById('seed');
+        const plant = document.getElementById('plant');
+        const canContainer = document.getElementById('canContainer');
+        const waterCan = document.getElementById('waterCan');
+        const showerHead = document.getElementById('showerHead');
+        const instruction = document.getElementById('instruction');
+        const promoCard = document.getElementById('promoCard');
+
+        let state = 'start';
+
+        seed.addEventListener('click', () => {
+            if (state === 'start') {
+                seed.classList.add('planted');
+                instruction.textContent = "Зернятку потрібна вода...";
+                state = 'planted';
+                setTimeout(() => {
+                    canContainer.classList.add('visible');
+                }, 800);
+            }
+        });
+
+        waterCan.addEventListener('click', () => {
+            if (state === 'planted') {
+                waterCan.classList.add('pouring');
+
+                setTimeout(() => {
+                    showerHead.classList.add('flowing');
+                    instruction.textContent = "Спостерігай за життям...";
+                }, 400);
+
+                state = 'watered';
+
+                // Stop water and Grow
+                setTimeout(() => {
+                    showerHead.classList.remove('flowing'); // Stop rain
+                    waterCan.classList.remove('pouring');
+                    setTimeout(() => canContainer.style.opacity = '0', 500);
+
+                    // Trigger Growth Reveal
+                    plant.classList.add('grown');
+                }, 2500);
+
+                // Show Promo
+                setTimeout(() => {
+                    instruction.style.opacity = '0';
+                    promoCard.classList.add('show');
+                }, 5500);
+            }
+        });
+    </script>
+</body>
+
+</html>

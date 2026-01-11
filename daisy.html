@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ромашка</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Cinzel', serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .ambient-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('daisy_ref_bg.jpg') no-repeat center center;
+            background-size: cover;
+            filter: blur(15px) brightness(0.8);
+            z-index: 0;
+        }
+
+        .flower-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* Reverting Mask Logic to previous stable version */
+        .masked-element {
+            position: absolute;
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-position: center bottom;
+            mask-repeat: no-repeat;
+            mask-position: center bottom;
+            -webkit-mask-mode: luminance;
+            mask-mode: luminance;
+        }
+
+        /* STEM */
+        .flower-stem {
+            top: 40%;
+            left: 50%;
+            width: 14px;
+            height: 400px;
+            transform: translateX(-50%);
+            z-index: 5;
+            background: linear-gradient(90deg, #689f38, #558b2f, #33691e);
+            -webkit-mask-image: url('daisy_stem.png');
+            -webkit-mask-size: 100% 100%;
+            -webkit-mask-position: top center;
+            filter: brightness(0.9);
+        }
+
+        /* CENTER: Keeping the fixed round/large version */
+        .flower-center {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 54px;
+            height: 54px;
+            z-index: 30;
+
+            background-color: #ff8f00;
+            background-image:
+                radial-gradient(circle, #ffca28 25%, transparent 30%),
+                radial-gradient(circle, #ffa000 25%, transparent 30%);
+            background-size: 6px 6px;
+            background-position: 0 0, 3px 3px;
+
+            border-radius: 50%;
+            box-shadow:
+                inset 0 -2px 5px rgba(0, 0, 0, 0.2),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* PETAL: Reverted to previous shape logic */
+        .petal {
+            top: 40%;
+            left: 50%;
+            width: 60px;
+            height: 200px;
+
+            margin-left: -30px;
+            margin-top: -200px;
+            transform-origin: bottom center;
+            z-index: 10;
+
+            background: #ffffff;
+
+            -webkit-mask-image: url('daisy_petal.png');
+            -webkit-mask-size: 100% 100%;
+            /* Position handled by .masked-element class */
+
+            filter: brightness(2) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+            transition: transform 0.1s;
+        }
+
+        .petal:hover {
+            filter: brightness(2.5) drop-shadow(0 0 5px white);
+        }
+
+        .petal:active {
+            transform: scale(0.95);
+        }
+
+        /* Flying Animation */
+        .flying-petal {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+            width: 60px;
+            height: 200px;
+            margin-left: -30px;
+            margin-top: -200px;
+            transform-origin: bottom center;
+
+            background: #ffffff;
+            -webkit-mask-image: url('daisy_petal.png');
+            -webkit-mask-size: 100% 100%;
+            -webkit-mask-mode: luminance;
+
+            filter: drop-shadow(5px 10px 10px rgba(0, 0, 0, 0.2));
+        }
+
+        /* Updated Promo Card Style */
+        .promo-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 40px 60px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.5s ease;
+        }
+
+        /* Lead Gen Form Styles */
+        .lead-form input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 12px 20px;
+            color: #fff;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            width: 70%;
+            margin-bottom: 15px;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .lead-form input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .lead-form input:focus {
+            border-color: #fceea7;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .hidden-offer {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .hidden-offer.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        #promo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: auto;
+            /* Auto width for card */
+            max-width: 90%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            z-index: 40;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #promo.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #promo.visible .promo-card {
+            transform: scale(1);
+        }
+
+        #promo h1 {
+            font-size: 2.5rem;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 400;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            color: #fff;
+        }
+
+        #promo p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 1px;
+            color: #fceea7;
+            /* Gold/Cream tint */
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid #fff;
+            color: #fff;
+            padding: 12px 40px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            font-family: 'Cinzel', serif;
+        }
+
+        .btn:hover {
+            background: #fff;
+            color: #1a3c34;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="ambient-bg"></div>
+
+    <div class="flower-container" id="flower">
+        <div class="flower-stem masked-element"></div>
+        <div class="flower-center"></div>
+        <!-- Petals -->
+    </div>
+
+    <div id="promo">
+        <div class="promo-card" id="promoCard">
+            <h1>Love is in the air</h1>
+
+            <!-- FORM -->
+            <form class="lead-form" id="emailForm" onsubmit="handleForm(event)">
+                <p style="margin-bottom: 20px; color: #fceea7;">
+                    Заповніть форму, щоб отримати знижку
+                </p>
+                <input type="hidden" name="source" value="Daisy">
+                <input type="text" name="name" placeholder="Ваше Ім'я" required
+                    style="display:block; margin: 0 auto 10px auto;">
+                <input type="text" name="contact" placeholder="Email або Телефон" required
+                    style="display:block; margin: 0 auto 15px auto;">
+
+                <button class="btn" type="submit">Отримати код</button>
+            </form>
+
+            <!-- OFFER -->
+            <div class="hidden-offer" id="offerResult">
+                <p style="margin-bottom: 5px; color: #fceea7; opacity: 0.8; font-size: 0.9rem;">-15% on delivery for
+                    Valentine's Day</p>
+                <h2 style="margin: 0 0 20px 0; color: #fff;">LOVE15</h2>
+                <button class="btn" onclick="window.location.href='https://t.me/quarter_flowers_cv?text=LOVE15'">Send
+                    Code</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const flower = document.getElementById('flower');
+        const promo = document.getElementById('promo');
+        const center = document.querySelector('.flower-center');
+        const stem = document.querySelector('.flower-stem');
+
+        // Reverting count to 15 to avoid squashed look
+        let petalCount = 15;
+        let petalsRemoved = 0;
+        const petals = [];
+
+        for (let i = 0; i < petalCount; i++) {
+            const petal = document.createElement('div');
+            petal.classList.add('petal');
+
+            // Re-adding the class that handles mask positioning correctly
+            petal.classList.add('masked-element');
+
+            const angle = (360 / petalCount) * i;
+            const scale = 0.9 + Math.random() * 0.15;
+
+            petal.style.transform = `rotate(${angle}deg) scale(${scale})`;
+            petal.dataset.angle = angle;
+
+            flower.appendChild(petal);
+            petals.push(petal);
+        }
+
+        document.body.addEventListener('click', (e) => {
+            if (e.target.closest('#promo')) return;
+            if (petalsRemoved >= petalCount) return;
+            removePetal();
+        });
+
+        function removePetal() {
+            const available = petals.filter(p => !p.dataset.removed);
+            if (available.length === 0) return;
+
+            const petal = available[Math.floor(Math.random() * available.length)];
+            petal.dataset.removed = true;
+            petal.style.opacity = '0';
+
+            createFlying(petal);
+
+            petalsRemoved++;
+            if (petalsRemoved === petalCount) {
+                setTimeout(() => {
+                    center.style.transition = 'opacity 1s';
+                    center.style.opacity = '0';
+                    stem.style.transition = 'opacity 1s';
+                    stem.style.opacity = '0';
+                    promo.classList.add('visible');
+                }, 600);
+            }
+        }
+
+        function createFlying(origin) {
+            const clone = document.createElement('div');
+            clone.className = 'flying-petal masked-element';
+
+            const rect = flower.getBoundingClientRect();
+            const originY = rect.top + (rect.height * 0.4);
+            const originX = rect.left + rect.width / 2;
+
+            clone.style.left = originX + 'px';
+            clone.style.top = originY + 'px';
+            clone.style.transform = origin.style.transform;
+
+            document.body.appendChild(clone);
+            clone.getBoundingClientRect();
+
+            const angle = parseFloat(origin.dataset.angle);
+            const dist = 600;
+            const rad = angle * Math.PI / 180;
+            const dx = Math.sin(rad) * dist + (Math.random() - 0.5) * 150;
+            const dy = -Math.cos(rad) * dist + (Math.random() - 0.5) * 150;
+
+            clone.style.transition = 'transform 0.8s cubic-bezier(0.1, 0.7, 1.0, 0.1), opacity 0.5s 0.3s';
+            clone.style.transform = `translate(${dx}px, ${dy}px) rotate(${angle + Math.random() * 120}deg) scale(0.6)`;
+            clone.style.opacity = '0';
+
+            setTimeout(() => clone.remove(), 800);
+        }
+
+        // --- FORM HANDLING ---
+        // --- FORM HANDLING ---
+        function handleForm(e) {
+            e.preventDefault();
+            const form = document.getElementById('emailForm');
+            const result = document.getElementById('offerResult');
+            const btn = form.querySelector('button');
+            btn.innerHTML = "Відправка...";
+
+            // Google Form Data
+            const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfMqCoTyx61dxDnNlKg41ALTi1J6gRdn1R4FGUDplm0SHCtvQ/formResponse';
+            const ID_NAME = 'entry.166527665';
+            const ID_CONTACT = 'entry.2146130319';
+
+            const nameVal = form.querySelector('input[name="name"]').value;
+            const contactVal = form.querySelector('input[name="contact"]').value;
+            const finalName = `${nameVal} (Love is in the air)`;
+
+            const formData = new FormData();
+            formData.append(ID_NAME, finalName);
+            formData.append(ID_CONTACT, contactVal);
+
+            fetch(FORM_URL, { method: 'POST', body: formData, mode: 'no-cors' })
+                .then(() => {
+                    form.style.display = 'none';
+                    result.classList.add('visible');
+                })
+                .catch(() => {
+                    form.style.display = 'none';
+                    result.classList.add('visible');
+                });
+        }
+    </script>
+</body>
+
+</html>

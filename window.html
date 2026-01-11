@@ -282,12 +282,13 @@
         resize();
 
         // --- AUTH & CLEANUP ---
+        // --- AUTH & CLEANUP ---
         let wipeCount = 0;
         function checkAutoClear() {
-            if (wipeCount > 80) { // Approx 1.5 seconds of wiping
-                canvas.style.transition = 'opacity 1s';
-                canvas.style.opacity = '0';
-                canvas.style.pointerEvents = 'none'; // Unblock form
+            // User requested manual cleaning. We do NOT fade out the canvas.
+            // We only disable pointer-events so they can click the button after wiping enough.
+            if (wipeCount > 150) {
+                canvas.style.pointerEvents = 'none'; // Unblock form, but keep fog visible
             }
         }
 

@@ -218,6 +218,10 @@
             };
         }
 
+        let totalWipeTime = 0;
+        let lastWipeTime = 0;
+        let isRevealed = false;
+
         function wipe(x, y) {
             ctx.globalCompositeOperation = 'destination-out';
 
@@ -236,13 +240,25 @@
                 hint.style.opacity = '0';
                 hint.style.transition = 'opacity 0.8s';
             }
-            wipeCount++;
-            checkAutoClear();
+
+            // Accumulate active wiping time
+            const now = Date.now();
+            // If the last wipe was less than 100ms ago, we consider it continuous scrubbing
+            if (now - lastWipeTime < 100) {
+                totalWipeTime += (now - lastWipeTime);
+            }
+            lastWipeTime = now;
+
+            if (totalWipeTime > 5000 && !isRevealed) {
+                revealRest();
+                isRevealed = true;
+            }
         }
 
         // Mouse Events
         canvas.addEventListener('mousedown', (e) => {
             isDrawing = true;
+            lastWipeTime = Date.now(); // Reset timestamp on new stroke start
             const pos = getMousePos(e);
             wipe(pos.x, pos.y);
         });
@@ -262,6 +278,7 @@
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault(); // prevent scrolling
             isDrawing = true;
+            lastWipeTime = Date.now(); // Reset timestamp on new stroke start
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
             wipe(touch.clientX - rect.left, touch.clientY - rect.top);
@@ -282,14 +299,12 @@
         resize();
 
         // --- AUTH & CLEANUP ---
-        // --- AUTH & CLEANUP ---
-        let wipeCount = 0;
-        function checkAutoClear() {
-            // User requested manual cleaning. We do NOT fade out the canvas.
-            // We only disable pointer-events so they can click the button after wiping enough.
-            if (wipeCount > 150) {
-                canvas.style.pointerEvents = 'none'; // Unblock form, but keep fog visible
-            }
+
+        function revealRest() {
+            canvas.style.transition = 'opacity 2.5s ease-out';
+            canvas.style.opacity = '0';
+            // Allow clicks to pass through to the form
+            canvas.style.pointerEvents = 'none';
         }
 
         // --- FORM HANDLING ---

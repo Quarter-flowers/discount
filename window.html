@@ -128,13 +128,13 @@
     <div id="container">
         <!-- The Content Behind -->
         <div id="shop-view">
-            <h1>YOUR LAST CHANCE</h1>
+            <h1>SPRING IS IN THE AIR</h1>
 
             <div id="promoCard" style="width: 100%; max-width: 500px;">
                 <!-- FORM -->
                 <form class="lead-form" id="emailForm" onsubmit="handleForm(event)">
                     <p style="margin-bottom: 20px; color: #f7f1e3; font-size: 1.2rem;">
-                        Залиште контакти, щоб отримати знижку
+                        Заповніть форму, щоб отримати подарунок і першими дізнаватись про наші спеціальні пропозиції
                     </p>
                     <input type="hidden" name="source" value="Window">
                     <input type="text" name="name" placeholder="Ваше Ім'я" required
@@ -153,11 +153,11 @@
                     <div
                         style="border: 1px solid #d4af37; padding: 20px; margin-top: 20px; background: rgba(0,0,0,0.3); max-width: 80%;">
                         <p style="margin: 0; color: #d4af37; font-size: 1.5rem; letter-spacing: 2px;">Ваш код:
-                            LASTCHANCE</p>
-                        <p style="margin: 5px 0 0 0; font-size: 1rem; opacity: 0.8;">-14% на передзамовлення тюльпанів
-                            до 8 березня</p>
+                            TULIPS8</p>
+                        <p style="margin: 5px 0 0 0; font-size: 1rem; opacity: 0.8;">-8% на передзамовлення тюльпанів до
+                            8 березня ❤️</p>
                     </div>
-                    <button onclick="window.location.href='https://t.me/quarter_flowers_cv?text=LASTCHANCE%20-14%25'"
+                    <button onclick="window.location.href='https://t.me/quarter_flowers_cv?text=TULIPS8%20-8%25'"
                         style="background: transparent; border: 1px solid #d4af37; color: #d4af37; padding: 10px 30px; cursor: pointer; font-family: 'Cinzel'; margin-top: 20px; transition:0.3s; width: auto; max-width: 80%;">
                         Написати в Telegram
                     </button>
@@ -168,7 +168,7 @@
 
         </div>
 
-        <div class="instruction-overlay" id="hint">Протри запотіле вікно...</div>
+        <div class="instruction-overlay" id="hint" style="font-size: 2rem;">Зітри іній, щоб побачити..</div>
 
         <!-- The Fog -->
         <canvas id="fogCanvas"></canvas>
@@ -322,7 +322,7 @@
 
             const nameVal = form.querySelector('input[name="name"]').value;
             const contactVal = form.querySelector('input[name="contact"]').value;
-            const finalName = `${nameVal} (Your last chance)`;
+            const finalName = `${nameVal} (Spring is in the air)`;
 
             const formData = new FormData();
             formData.append(ID_NAME, finalName);

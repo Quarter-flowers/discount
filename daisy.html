@@ -264,7 +264,7 @@
     <div class="ambient-bg"></div>
 
     <div
-        style="position: absolute; top: 10%; width: 100%; text-align: center; color: rgba(255,255,255,0.9); font-size: 1.2rem; pointer-events: none; z-index: 5; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+        style="position: absolute; top: 10%; width: 100%; text-align: center; color: rgba(255,255,255,0.9); font-size: 2rem; pointer-events: none; z-index: 5; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
         Відривай пелюстки...
     </div>
 
@@ -281,12 +281,12 @@
             <!-- FORM -->
             <form class="lead-form" id="emailForm" onsubmit="handleForm(event)">
                 <p style="margin-bottom: 20px; color: #fceea7;">
-                    Заповніть форму, щоб отримати знижку
+                    Заповніть форму, щоб отримати подарунок і першими дізнаватись про наші спеціальні пропозиції
                 </p>
                 <input type="hidden" name="source" value="Daisy">
                 <input type="text" name="name" placeholder="Ваше Ім'я" required
                     style="display:block; margin: 0 auto 10px auto;">
-                <input type="text" name="contact" placeholder="Email або Телефон" required
+                <input type="tel" name="contact" placeholder="Ваш номер телефону" required
                     style="display:block; margin: 0 auto 15px auto;">
 
                 <button class="btn" type="submit">Отримати код</button>
@@ -294,9 +294,9 @@
 
             <!-- OFFER -->
             <div class="hidden-offer" id="offerResult">
-                <p style="margin-bottom: 5px; color: #fceea7; opacity: 0.8; font-size: 0.9rem;">Безкоштовна доставка по
-                    місту на день закоханих</p>
-                <h2 style="margin: 0 0 20px 0; color: #fff;">Ваш код: LOVE14</h2>
+                <p style="margin-bottom: 5px; color: #fceea7; opacity: 1; font-size: 1.8rem; line-height: 1.4;">Даруємо
+                    безкоштовну доставку по місту 13-14 лютого</p>
+                <h2 style="margin: 20px 0 20px 0; color: #fff;">Ваш код: LOVE14</h2>
                 <button class="btn"
                     onclick="window.location.href='https://t.me/quarter_flowers_cv?text=LOVE14%20-%20Free%20Delivery'">Написати
                     в Telegram</button>
@@ -310,8 +310,8 @@
         const center = document.querySelector('.flower-center');
         const stem = document.querySelector('.flower-stem');
 
-        // Reverting count to 15 to avoid squashed look
-        let petalCount = 15;
+        // Reverting count to 8
+        let petalCount = 8;
         let petalsRemoved = 0;
         const petals = [];
 
